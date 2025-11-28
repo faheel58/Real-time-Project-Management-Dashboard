@@ -23,10 +23,6 @@ interface TaskListProps {
   isRefreshing?: boolean;
 }
 
-/**
- * TaskList Component
- * Displays a draggable list of tasks with drag-and-drop reordering
- */
 export const TaskList: React.FC<TaskListProps> = ({
   tasks,
   onTaskPress,
@@ -38,17 +34,14 @@ export const TaskList: React.FC<TaskListProps> = ({
 }) => {
   const [localTasks, setLocalTasks] = useState<Task[]>(tasks);
 
-  // Update local tasks when prop changes
+
   React.useEffect(() => {
     setLocalTasks(tasks);
   }, [tasks]);
 
-  /**
-   * Handle drag end - reorder tasks
-   */
+
   const handleDragEnd = useCallback(
     ({ data }: { data: Task[] }) => {
-      // Update order values based on new positions
       const reorderedTasks = data.map((task, index) => ({
         ...task,
         order: index,
@@ -60,9 +53,6 @@ export const TaskList: React.FC<TaskListProps> = ({
     [onReorder]
   );
 
-  /**
-   * Render individual task item
-   */
   const renderItem = useCallback(
     ({ item, drag, isActive }: RenderItemParams<Task>) => {
       return (

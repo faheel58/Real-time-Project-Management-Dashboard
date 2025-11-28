@@ -18,10 +18,6 @@ import { Task } from '../types/task';
 import { fetchTasks, createTask } from '../services/api';
 import socketService from '../services/socket';
 
-/**
- * Dashboard Screen
- * Main screen displaying tasks with real-time updates
- */
 export const Dashboard: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -32,13 +28,9 @@ export const Dashboard: React.FC = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
-  /**
-   * Load tasks from API
-   */
   const loadTasks = useCallback(async () => {
     try {
       const fetchedTasks = await fetchTasks();
-      // Sort by order, then by createdAt
       const sortedTasks = fetchedTasks.sort((a, b) => {
         if (a.order !== b.order) {
           return a.order - b.order;
@@ -55,14 +47,9 @@ export const Dashboard: React.FC = () => {
     }
   }, []);
 
-  /**
-   * Initialize socket connection and set up event listeners
-   */
   useEffect(() => {
-    // Connect to socket
     socketService.connect();
 
-    // Set up socket event listeners
     const handleTaskCreated = (task: Task) => {
       console.log('Task created via socket:', task);
       setTasks((prevTasks) => {
@@ -99,10 +86,8 @@ export const Dashboard: React.FC = () => {
     socketService.on('tasksReordered', handleTasksReordered);
     socketService.on('error', handleError);
 
-    // Load initial tasks
     loadTasks();
 
-    // Cleanup on unmount
     return () => {
       socketService.off('taskCreated', handleTaskCreated);
       socketService.off('taskUpdated', handleTaskUpdated);
@@ -112,20 +97,13 @@ export const Dashboard: React.FC = () => {
     };
   }, [loadTasks]);
 
-  /**
-   * Handle pull-to-refresh
-   */
   const handleRefresh = useCallback(() => {
     setIsRefreshing(true);
     loadTasks();
   }, [loadTasks]);
 
-  /**
-   * Handle task press - show task details
-   */
   const handleTaskPress = useCallback((task: Task) => {
     setSelectedTask(task);
-    // You can implement a detail modal or navigation here
     Alert.alert(
       task.title,
       task.description || 'No description',
@@ -133,22 +111,14 @@ export const Dashboard: React.FC = () => {
     );
   }, []);
 
-  /**
-   * Handle status change
-   */
   const handleStatusChange = useCallback(
     (taskId: string, status: 'todo' | 'in-progress' | 'completed') => {
-      // Update via socket for real-time sync
       socketService.updateTask({ id: taskId, status });
     },
     []
   );
 
-  /**
-   * Handle task reorder
-   */
-  const handleReorder = useCallback((reorderedTasks: Task[]) => {
-    // Update via socket for real-time sync
+ const handleReorder = useCallback((reorderedTasks: Task[]) => {
     const tasksToReorder = reorderedTasks.map((task) => ({
       id: task._id,
       order: task.order,
@@ -156,9 +126,6 @@ export const Dashboard: React.FC = () => {
     socketService.reorderTasks(tasksToReorder);
   }, []);
 
-  /**
-   * Handle create task
-   */
   const handleCreateTask = useCallback(async () => {
     if (!newTaskTitle.trim()) {
       Alert.alert('Error', 'Please enter a task title');
@@ -168,13 +135,11 @@ export const Dashboard: React.FC = () => {
     setIsCreating(true);
 
     try {
-      // Create via socket for real-time sync
       socketService.createTask({
         title: newTaskTitle.trim(),
         description: newTaskDescription.trim() || undefined,
       });
 
-      // Reset form
       setNewTaskTitle('');
       setNewTaskDescription('');
       setIsModalVisible(false);
@@ -186,9 +151,6 @@ export const Dashboard: React.FC = () => {
     }
   }, [newTaskTitle, newTaskDescription]);
 
-  /**
-   * Open create task modal
-   */
   const openCreateModal = useCallback(() => {
     setNewTaskTitle('');
     setNewTaskDescription('');
@@ -201,7 +163,6 @@ export const Dashboard: React.FC = () => {
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        {/* Header */}
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Project Management</Text>
           <Text style={styles.headerSubtitle}>
@@ -209,7 +170,7 @@ export const Dashboard: React.FC = () => {
           </Text>
         </View>
 
-        {/* Task List */}
+
         <TaskList
           tasks={tasks}
           onTaskPress={handleTaskPress}
@@ -220,7 +181,6 @@ export const Dashboard: React.FC = () => {
           isRefreshing={isRefreshing}
         />
 
-        {/* Create Task Button */}
         <TouchableOpacity
           style={styles.fab}
           onPress={openCreateModal}
@@ -229,7 +189,6 @@ export const Dashboard: React.FC = () => {
           <Text style={styles.fabText}>+</Text>
         </TouchableOpacity>
 
-        {/* Create Task Modal */}
         <Modal
           visible={isModalVisible}
           animationType="slide"
